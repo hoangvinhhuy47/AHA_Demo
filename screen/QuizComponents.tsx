@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 /**
  * QuizResultCard.tsx  –  React Native + @shopify/react-native-skia v1+
  *
@@ -341,7 +342,7 @@ function BackgroundLayer({
 
 function ProfileLayer({
   overlay,
-  profileUri,   // ảnh user — truyền từ props, không ghép BASE_IMAGE_URL
+  profileUri,
   scale,
 }: {
   overlay: ProfileOverlay;
@@ -365,7 +366,7 @@ function ProfileLayer({
 
   const effect = overlay.effect?.toLowerCase() ?? "none";
 
-  // Rotation transform — xoay quanh center của overlay box
+  // Rotation: xoay quanh tâm của overlay box (cx, cy)
   const a = overlay.a ?? 0;
   const rotationTransform = a !== 0 ? [
     { translateX: cx },
@@ -429,7 +430,7 @@ function ProfileLayer({
   // ── effect: grayscale ─────────────────────────────────────────────────────────
   if (effect === "grayscale") {
     return withRotation(
-      // <Group clip={circleClip}>
+      <Group clip={circleClip}>
         <Group>
           <Paint>
             <ColorMatrix matrix={GRAYSCALE_MATRIX} />
@@ -438,7 +439,7 @@ function ProfileLayer({
             <SkImage image={profileImage} x={ox} y={oy} width={ow} height={oh} fit="cover" />
           ) : placeholder}
         </Group>
-      // </Group>
+      </Group>
     );
   }
 
@@ -587,7 +588,6 @@ function TextLayer({
     va === "bottom" ? scaledY + scaledH - paraH        :
                       scaledY;
 
-  // Rotation: xoay quanh tâm của overlay box
   const hasRotation = typeof a === "number" && a !== 0;
   const centerX = scaledX + scaledW2 / 2;
   const centerY = scaledY + scaledH / 2;
@@ -634,18 +634,15 @@ function SingleResult({
   const internalRef = useRef<any>(null);
   const canvasRef = externalCanvasRef ?? internalRef;
 
-  // ── Kích thước gốc từ JSON (đây là resolution thật của ảnh output) ──────────
-  const nativeW = config.width;
-  const nativeH = config.height;
-
-  // ── Scale để hiển thị vừa màn hình (chỉ scale xuống, không scale lên) ───────
-  const screenW    = Dimensions.get("window").width;
-  const displayScale = screenW < nativeW ? screenW / nativeW : 1;
-  const displayW   = nativeW * displayScale;
-  const displayH   = nativeH * displayScale;
-
-  // Tất cả overlay dùng displayScale để tính tọa độ/size trên canvas hiển thị
-  const scale = displayScale;
+  // Canvas render 1:1 theo JSON (tọa độ overlay không đổi)
+  // View bọc ngoài dùng transform scale để fit chiều ngang màn hình
+  const nativeW   = config.width;
+  const nativeH   = config.height;
+  const screenW   = Dimensions.get('window').width;
+  const fitScale  = screenW / nativeW;          // scale để ngang card = ngang màn
+  const displayW  = nativeW;                    // canvas luôn render ở native size
+  const displayH  = nativeH;
+  const scale     = 1;
 
 
 
@@ -663,16 +660,22 @@ function SingleResult({
   }, [displayW, displayH]);
 
   return (
-    <View style={styles.cardWrapper}>
-      {/*
-        Canvas style = kích thước hiển thị trên màn hình (đã scale).
-        Group clip đảm bảo mọi overlay (text, profile, bg) không vượt ra
-        ngoài bounds config.width × config.height.
-      */}
-      <Canvas
-        ref={canvasRef}
-        style={[styles.canvas, { width: displayW, height: displayH }]}
-      >
+    // outerWrapper đặt kích thước thật trên màn (sau khi scale)
+    // transform scale không thay đổi layout nên cần đặt width/height tường minh
+    <View style={[styles.cardWrapper, {
+      width:  nativeW * fitScale,
+      height: nativeH * fitScale,
+    }]}>
+      <View style={{
+        width:  nativeW,
+        height: nativeH,
+        transform: [{ scale: fitScale }],
+        transformOrigin: 'top left',  // scale từ góc trên trái
+      }}>
+        <Canvas
+          ref={canvasRef}
+          style={[styles.canvas, { width: displayW, height: displayH }]}
+        >
         <Fill color="white" />
 
         {/* Tất cả overlay bị clip trong bounds của background */}
@@ -715,8 +718,8 @@ function SingleResult({
             return null;
           })}
         </Group>
-      </Canvas>
-
+        </Canvas>
+      </View>
     </View>
   );
 }
@@ -843,6 +846,7 @@ export default function QuizResultCard({
 
 const styles = StyleSheet.create({
   container: {
+    padding: 16,
     alignItems: "center",
     gap: 24,
   },

@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
-import QuizResultCard, { QuizData } from './QuizImageRenderer';
+import QuizResultCard, { QuizData } from './QuizComponents';
 import Share from 'react-native-share';
 
 const API_BASE =
@@ -113,14 +113,21 @@ export default function QuizScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
     >
       <ScrollView
-        contentContainerStyle={{ alignItems: 'center', paddingVertical: 20 }}
+        contentContainerStyle={{
+          alignItems: 'center',
+          paddingVertical: 20,
+          display: 'flex',
+          gap: 20,
+          flex: 1,
+          width: '100%',
+        }}
         keyboardShouldPersistTaps="handled"
       >
         {/* Input + Button */}
         <View style={styles.inputRow}>
           <TextInput
             style={styles.input}
-            placeholder="Nhập nameApp..."
+            placeholder="Nhập id app..."
             placeholderTextColor="#aaa"
             defaultValue=""
             onChangeText={v => {
@@ -148,9 +155,9 @@ export default function QuizScreen() {
         {error && <Text style={styles.errorText}>{error}</Text>}
 
         {quizData && (
-          <View style={{ width: '100%',gap:10 }}>
+          <View style={{ width: '100%', gap: 16 }}>
             <QuizResultCard
-              userName="Bạn"
+              userName="Huy"
               jsonData={quizData}
               profileUri="https://firebasestorage.googleapis.com/v0/b/magic-swap-puzzle.firebasestorage.app/o/users%2FwZb37U8jQlMy8ojmI3Wn8oXmvqG2%2FwZb37U8jQlMy8ojmI3Wn8oXmvqG2_avatar.jpg?alt=media&token=524fda6f-a2f9-4a4b-b698-defea981ab9b"
               variantIndex={Math.floor(Math.random() * 44)}
@@ -186,11 +193,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     display: 'flex',
+    width: '100%',
   },
   inputRow: {
     flexDirection: 'row',
     padding: 16,
     gap: 10,
+    width: '100%',
     alignItems: 'center',
     backgroundColor: '#fff',
     borderBottomWidth: 1,
@@ -199,6 +208,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 46,
+    width: '100%',
     borderWidth: 1.5,
     borderColor: '#ddd',
     borderRadius: 10,
